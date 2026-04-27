@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# AIOps Custom Alerting Rules
+rule_files:
+  - "alerts-rules.yml"
+
+scrape_configs:
+  - job_name: 'aiops-api'
+    static_configs:
+      - targets: ['api.aiops.svc.cluster.local:8000']
+        
+  - job_name: 'prediction-engine'
+    static_configs:
+      - targets: ['prediction-engine.aiops.svc.cluster.local:8001']
+
+  - job_name: 'correlation-engine'
+    static_configs:
+      - targets: ['correlation-engine.aiops.svc.cluster.local:8002']
+      
+  # Scrape external enterprise targets for Ingestion Mock
+  - job_name: 'enterprise-k8s'
+    kubernetes_sd_configs:
+    - role: node
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)

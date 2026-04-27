@@ -1,0 +1,53 @@
+# AIOps: Platform Backend API Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aiops-api
+  namespace: aiops-system
+  labels:
+    app: aiops-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: aiops-api
+  template:
+    metadata:
+      labels:
+        app: aiops-api
+    spec:
+      containers:
+      - name: api
+        image: acrdevopstrio.azurecr.io/aiops-api:1.0.0
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: connection_string
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+        resources:
+          limits:
+            cpu: "1000m"
+            memory: "1024Mi"
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aiops-api-svc
+  namespace: aiops-system
+spec:
+  ports:
+  - port: 80
+    targetPort: 8000
+  selector:
+    app: aiops-api
+  type: ClusterIP
